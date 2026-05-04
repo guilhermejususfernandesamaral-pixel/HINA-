@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>HINA CORE — PROTOCOLO ALPHA</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --g: #d946ef; --pk: #f472b6; --bg: #05010a; --txt: #fce7f3; 
+            --border: rgba(217, 70, 239, 0.15); --shield: #22d3ee; --warn: #fbbf24;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: var(--txt); height: 100vh; overflow: hidden; }
+
+        /* ABERTURA CINEMATOGRÁFICA */
+        #boot-screen {
+            position: fixed; inset: 0; z-index: 10000; background: #000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'Fira Code', monospace; color: var(--shield);
+        }
+        .boot-terminal { width: 80%; max-width: 700px; height: 300px; overflow: hidden; font-size: 11px; opacity: 0.8; }
+
+        /* TELA DE SENHA (707070) */
+        #lock-screen {
+            position: fixed; inset: 0; z-index: 9999; background: var(--bg);
+            display: none; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
+        }
+        .pass-input {
+            background: transparent; border: none; border-bottom: 2px solid var(--g);
+            padding: 10px; color: var(--g); text-align: center; font-size: 32px;
+            font-family: 'Orbitron'; letter-spacing: 15px; outline: none; width: 300px;
+            transition: 0.3s;
+        }
+        .pass-input:focus { border-color: var(--shield); filter: drop-shadow(0 0 10px var(--shield)); }
+
+        /* INTERFACE HINA PRINCIPAL */
+        #app { display: none; flex-direction: column; height: 100vh; position: relative; }
+        .bg-fx { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1a0525 0%, #05010a 100%); z-index: -1; }
+        
+        .hdr { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        .hdr-logo { font-family: 'Orbitron'; font-weight: 900; letter-spacing: 5px; color: var(--g); }
+
+        /* CORAÇÃO CORE */
+        .main-engine { flex: 1; display: flex; position: relative; overflow: hidden; }
+        .visualizer { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        
+        .heart-box { position: relative; cursor: pointer; }
+        .heart {
+            width: 120px; height: 110px; background: var(--g); transform: rotate(-45deg);
+            box-shadow: 0 0 50px var(--g); animation: pulse 2s infinite ease-in-out; position: relative;
+        }
+        .heart::before, .heart::after { content: ""; position: absolute; width: 120px; height: 120px; background: var(--g); border-radius: 50%; }
+        .heart::before { top: -60px; left: 0; }
+        .heart::after { top: 0; left: 60px; }
+
+        /* Estados de IA */
+        .heart.processing { animation: pulse 0.4s infinite alternate; background: var(--shield); box-shadow: 0 0 70px var(--shield); }
+        .heart.low-energy { background: var(--warn); box-shadow: 0 0 40px var(--warn); }
+
+        @keyframes pulse { 0% { transform: rotate(-45deg) scale(1); } 50% { transform: rotate(-45deg) scale(1.1); } 100% { transform: rotate(-45deg) scale(1); } }
+
+        /* PAINEL DE COMANDO (CHAT) */
+        .control-panel { 
+            width: 400px; background: rgba(0,0,0,0.8); border-left: 1px solid var(--border); 
+            display: flex; flex-direction: column; backdrop-filter: blur(20px);
+        }
+        #chat-logs { flex: 1; overflow-y: auto; padding: 25px; font-family: 'Rajdhani'; scrollbar-width: thin; }
+        .msg-box { margin-bottom: 20px; animation: slideIn 0.3s ease; }
+        .label { font-family: 'Orbitron'; font-size: 9px; letter-spacing: 2px; margin-bottom: 5px; display: block; }
+        .text { font-size: 15px; line-height: 1.6; opacity: 0.9; }
+
+        .input-area { padding: 20px; background: rgba(0,0,0,0.5); border-top: 1px solid var(--border); }
+        input#cmd { 
+            width: 100%; padding: 15px; background: rgba(217, 70, 239, 0.05); 
+            border: 1px solid var(--border); color: #fff; border-radius: 4px; outline: none;
+            font-family: 'Fira Code'; transition: 0.3s;
+        }
+        input#cmd:focus { border-color: var(--g); box-shadow: 0 0 15px rgba(217, 70, 239, 0.2); }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="boot-screen"><div class="boot-terminal" id="boot-log"></div></div>
+
+    <div id="lock-screen">
+        <div style="font-family:'Orbitron'; color:var(--g); letter-spacing:5px;">AUTENTICAÇÃO DE NÍVEL 01</div>
+        <input type="password" class="pass-input" id="pass" maxlength="6" placeholder="000000">
+    </div>
+
+    <div id="app">
+        <div class="bg-fx"></div>
+        <header class="hdr">
+            <div class="hdr-logo">HINA<span>//CORE</span></div>
+            <div id="sys-status" style="font-family:'Fira Code'; font-size:10px; color:var(--shield);">SISTEMA ESTÁVEL // BAT: --%</div>
+        </header>
+
+        <div class="main-engine">
+            <section class="visualizer">
+                <div class="heart-box"><div class="heart" id="hina-heart"></div></div>
+                <div id="engine-status" style="margin-top:100px; font-family:'Orbitron'; font-size:11px; color:var(--g); letter-spacing:3px;">ASSISTENTE ATIVA</div>
+            </section>
+
+            <aside class="control-panel">
+                <div id="chat-logs"></div>
+                <div class="input-area">
+                    <input type="text" id="cmd" placeholder="Digite seu comando, Senhor..." autocomplete="off">
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        /* ═══════════════════════════════════════════════════════
+           HINA INTELLIGENCE CORE - CONFIGURAÇÃO COMPLEXA
+           ═══════════════════════════════════════════════════════ */
+        
+        const CONFIG = {
+            SENHOR: "Senhor",
+            API_ENDPOINT: "http://localhost:8080/api/chat", // Endpoint para sua API
+            VERSION: "3.0.4-BETA",
+            MAX_MEMORY: 10 // Quantas mensagens ela lembra
+        };
+
+        let session_memory = [];
+        const heart = document.getElementById('hina-heart');
+
+        // 1. ABERTURA COMPLEXA (VERIFICAÇÃO DE SISTEMA)
+        async function initiateBoot() {
+            const log = document.getElementById('boot-log');
+            const sequences = [
+                "> HINA OS v" + CONFIG.VERSION + " inicializando...",
+                "> Carregando chaves de criptografia RSA-4096...",
+                "> Verificando integridade da porta 8080...",
+                "> Status: Porta detectada. Protocolo HTTP ativo.",
+                "> Sincronizando personalidade 'Assistente Fiel'...",
+                "> Localizando usuário: " + CONFIG.SENHOR,
+                "> BOOT COMPLETO. AGUARDANDO ACESSO..."
+            ];
+
+            for (let line of sequences) {
+                log.innerHTML += `<div>${line}</div>`;
+                await new Promise(r => setTimeout(r, 400));
+            }
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.display = 'none';
+                document.getElementById('lock-screen').style.display = 'flex';
+                document.getElementById('pass').focus();
+            }, 800);
+        }
+
+        // 2. SEGURANÇA (SENHA 707070)
+        document.getElementById('pass').addEventListener('input', (e) => {
+            if(e.target.value === "707070") {
+                document.getElementById('lock-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('lock-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'flex';
+                    hinaSpeak(`Sistemas online. Estou à sua disposição, ${CONFIG.SENHOR}.`);
+                }, 500);
+            }
+        });
+
+        // 3. COMUNICAÇÃO COMPLEXA COM O BACKEND
+        async function processRequest(input) {
+            if(!input) return;
+            addLog('user', input);
+            
+            heart.classList.add('processing');
+            
+            // Organizando o objeto complexo para a sua API.KEY no Back-end
+            const payload = {
+                header: {
+                    user: CONFIG.SENHOR,
+                    timestamp: new Date().toISOString(),
+                    version: CONFIG.VERSION
+                },
+                content: {
+                    prompt: input,
+                    memory: session_memory.slice(-CONFIG.MAX_MEMORY)
+                },
+                system_info: {
+                    battery: document.getElementById('sys-status').innerText.split(': ')[1],
+                    platform: navigator.platform
+                }
+            };
+
+            try {
+                const response = await fetch(CONFIG.API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                // Organiza a memória
+                session_memory.push({ u: input, h: data.response });
+                
+                hinaSpeak(data.response);
+
+            } catch (err) {
+                hinaSpeak(`Perdoe-me, ${CONFIG.SENHOR}, mas não consegui contatar meu núcleo de processamento na porta 8080.`);
+            } finally {
+                heart.classList.remove('processing');
+            }
+        }
+
+        // 4. INTERFACE E SENSORES
+        function hinaSpeak(text) {
+            addLog('hina', text);
+        }
+
+        function addLog(role, text) {
+            const logs = document.getElementById('chat-logs');
+            const color = role === 'user' ? 'var(--g)' : 'var(--shield)';
+            const label = role === 'user' ? 'COMANDO' : 'HINA';
+            
+            logs.innerHTML += `
+                <div class="msg-box">
+                    <span class="label" style="color:${color}">${label}</span>
+                    <div class="text">${text}</div>
+                </div>
+            `;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Monitor de Bateria Real
+        if(navigator.getBattery) {
+            navigator.getBattery().then(bat => {
+                const update = () => {
+                    let lvl = Math.round(bat.level * 100);
+                    document.getElementById('sys-status').innerText = `SISTEMA ESTÁVEL // BAT: ${lvl}%`;
+                    if(lvl < 20) heart.classList.add('low-energy');
+                };
+                bat.addEventListener('levelchange', update);
+                update();
+            });
+        }
+
+        // Listeners
+        document.getElementById('cmd').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                processRequest(e.target.value);
+                e.target.value = '';
+            }
+        });
+
+        window.onload = initiateBoot;
+    </script>
+</body>
+</html>
